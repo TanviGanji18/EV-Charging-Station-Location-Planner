@@ -1,0 +1,23 @@
+# Python environment
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# External API datasets
+/data/raw/
+/data/processed/
+
+# Temporary files
+*.log
+*.zip
+
+# IDE settings
+.vscode/
+.idea/
