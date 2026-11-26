@@ -18,6 +18,15 @@ def secret():
 class Credentials(BaseModel):
     email:EmailStr
     password:str=Field(min_length=8,max_length=128)
+class Profile(BaseModel):
+    full_name:str=Field(default='',max_length=120)
+    organization:str=Field(default='',max_length=160)
+    user_type:str=Field(default='Individual User',pattern='^(EV Charging Company|City Planner|Business Owner|Researcher / Analyst|Individual User)$')
+class Registration(Credentials,Profile):
+    pass
+class PasswordChange(BaseModel):
+    current_password:str
+    new_password:str=Field(min_length=8,max_length=128)
 class Site(BaseModel):
     name:str=Field(min_length=1,max_length=200)
     latitude:float=Field(ge=-90,le=90)
@@ -30,16 +39,16 @@ class Preferences(BaseModel):
 def user(auth:HTTPAuthorizationCredentials=Depends(bearer),s=Depends(db)):
     try: uid=int(jwt.decode(auth.credentials,secret(),algorithms=['HS256'],options={'require':['exp','sub']})['sub'])
     except (jwt.PyJWTError,ValueError,TypeError): raise HTTPException(401,'Invalid token')
-    row=s.execute(text('SELECT id,email,role FROM planner_users WHERE id=:id'),{'id':uid}).mappings().first()
+    row=s.execute(text('SELECT id,email,role,full_name,organization,user_type FROM planner_users WHERE id=:id'),{'id':uid}).mappings().first()
     if not row: raise HTTPException(401,'Unknown user')
     return dict(row)
 def admin(u=Depends(user)):
     if u['role']!='admin': raise HTTPException(403,'Admin required')
     return u
 @router.post('/auth/register',status_code=201)
-def register(body:Credentials,s=Depends(db)):
+def register(body:Registration,s=Depends(db)):
     try:
-        row=s.execute(text('INSERT INTO planner_users(email,password_hash) VALUES (:e,:p) RETURNING id,email,role'),{'e':body.email.lower(),'p':passwords.hash(body.password)}).mappings().one(); s.commit(); return dict(row)
+        row=s.execute(text('INSERT INTO planner_users(email,password_hash,full_name,organization,user_type) VALUES (:e,:p,:full_name,:organization,:user_type) RETURNING id,email,role,full_name,organization,user_type'),{'e':body.email.lower(),'p':passwords.hash(body.password),'full_name':body.full_name,'organization':body.organization,'user_type':body.user_type}).mappings().one(); s.commit(); return dict(row)
     except IntegrityError: s.rollback(); raise HTTPException(409,'Email already registered')
 @router.post('/auth/login')
 def login(body:Credentials,s=Depends(db)):
@@ -83,3 +92,12 @@ def delete_station(id:int,u=Depends(admin),s=Depends(db)):
     r=s.execute(text('DELETE FROM planner_stations WHERE id=:id'),{'id':id});s.commit()
     if not r.rowcount: raise HTTPException(404,'Station not found')
     return {'deleted':True}
+
+@router.put('/auth/profile')
+def edit_profile(body:Profile,u=Depends(user),s=Depends(db)):
+    row=s.execute(text('UPDATE planner_users SET full_name=:full_name,organization=:organization,user_type=:user_type WHERE id=:id RETURNING id,email,role,full_name,organization,user_type'),{**body.model_dump(),'id':u['id']}).mappings().one();s.commit();return dict(row)
+@router.put('/auth/password')
+def change_password(body:PasswordChange,u=Depends(user),s=Depends(db)):
+    old=s.execute(text('SELECT password_hash FROM planner_users WHERE id=:id'),{'id':u['id']}).scalar_one()
+    if not passwords.verify(body.current_password,old): raise HTTPException(400,'Current password is incorrect')
+    s.execute(text('UPDATE planner_users SET password_hash=:p WHERE id=:id'),{'p':passwords.hash(body.new_password),'id':u['id']});s.commit();return {'updated':True}

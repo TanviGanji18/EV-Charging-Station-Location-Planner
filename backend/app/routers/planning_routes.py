@@ -2,7 +2,10 @@
 import logging
 import math
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends, HTTPException
+from fastapi.security import HTTPBearer
+from app.routers.account_routes import user, preferences
+from app.database import db
 from pydantic import BaseModel, Field
 from concurrent.futures import ThreadPoolExecutor
 
@@ -238,7 +241,14 @@ def calculate_road(traffic_data):
 
 # Main suitability analysis
 
-def analyze(site):
+def request_weights(auth=Depends(HTTPBearer(auto_error=False)),s=Depends(db)):
+    if auth is None: return WEIGHTS.copy()
+    u=user(auth,s)
+    pref=preferences(u,s)
+    return {k:float(pref[k])/100 for k in WEIGHTS}
+
+def analyze(site, weights=None):
+    weights = WEIGHTS.copy() if weights is None else weights
 
     latitude = site.latitude
     longitude = site.longitude
@@ -277,6 +287,16 @@ def analyze(site):
         infra = infra_future.result()
         tr = traffic_future.result()
 
+    # A smaller radius can establish the nearest station without a dense-city cap.
+    if ev.get('result_limit_reached'):
+        for radius in (5, 2, 1, 0.2, 0.05):
+            smaller=safe(get_nearby_ev_stations,latitude,longitude,radius,100)
+            if isinstance(smaller.get('stations'),list) and smaller['stations'] and not smaller.get('result_limit_reached'):
+                ev=smaller
+                break
+            if isinstance(smaller.get('stations'),list) and not smaller['stations']:
+                break
+
     # Factor 1: Charging coverage gap
 
     gap, nearest, coverage_status = (
@@ -306,7 +326,7 @@ def analyze(site):
     missing_factors = [
         key
         for key, value in factors.items()
-        if value is None
+        if value is None and weights[key] > 0
     ]
 
     score = None
@@ -315,8 +335,8 @@ def analyze(site):
 
         score = round(
             sum(
-                factors[key] * WEIGHTS[key]
-                for key in WEIGHTS
+                (factors[key] or 0) * weights[key]
+                for key in weights
             ),
             2
         )
@@ -341,45 +361,22 @@ def analyze(site):
     # Human-readable explanations
 
     reasons = []
-
-    if gap is not None:
-
-        if nearest is None:
-            reasons.append(
-                "No charging stations reported "
-                "within the search radius."
-            )
-
-        elif nearest >= COVERAGE_THRESHOLD_KM:
-            reasons.append(
-                "The nearest reported charging "
-                "station is at least 5 km away."
-            )
-
-        else:
-            reasons.append(
-                f"Nearest reported charging station "
-                f"is {nearest:.2f} km away."
-            )
-
-    if commercial is not None:
-        reasons.append(
-            f"At least {facility_count} commercial "
-            "facility records identified nearby."
-        )
-
-    if road is not None:
-
-        if tr.get("road_closure"):
-            reasons.append(
-                "The reported road segment is closed."
-            )
-
-        else:
-            reasons.append(
-                "Road proximity evaluated using "
-                "TomTom road segment information."
-            )
+    if gap is None:
+        reasons.append("Charging coverage could not be established reliably; try a nearby point or retry.")
+    elif nearest is None:
+        reasons.append("No stations were reported in the search area, suggesting a possible coverage opportunity; verify locally.")
+    else:
+        reasons.append(f"The nearest reported charger is {nearest:.2f} km away. " + ("This suggests an opportunity to extend charging coverage." if gap>=60 else "Existing charging infrastructure nearby reduces the coverage opportunity."))
+    if commercial is None:
+        reasons.append("Commercial surroundings could not be assessed completely.")
+    else:
+        reasons.append(f"At least {facility_count} nearby facility records indicate " + ("strong commercial surroundings and potential charging activity." if commercial>=70 else "limited commercial activity under this scoring model."))
+    if road is None:
+        reasons.append("Road accessibility could not be assessed reliably.")
+    elif tr.get('road_closure'):
+        reasons.append("A reported road closure reduces accessibility at this site.")
+    else:
+        reasons.append("Estimated road proximity and road class suggest " + ("favourable vehicle accessibility." if road>=70 else "accessibility constraints that warrant a site inspection."))
 
     return {
         "site": site.model_dump(),
@@ -391,11 +388,11 @@ def analyze(site):
         ),
         "suitability": suitability,
         "factors": factors,
-        "weights": WEIGHTS,
+        "weights": weights,
         "missing_factors": missing_factors,
         "nearest_charger_km": nearest,
         "coverage_status": coverage_status,
-        "station_search_radius_km": EV_SEARCH_RADIUS_KM,
+        "station_search_radius_km": ev.get("radius_km", EV_SEARCH_RADIUS_KM),
         "stations_found": ev.get("total_stations"),
         "station_result_limit_reached": ev.get(
             "result_limit_reached"
@@ -425,20 +422,20 @@ def analyze(site):
 # Individual location analysis endpoint
 
 @router.post("/analysis")
-def analysis(site: Site):
-    return analyze(site)
+def analysis(site: Site, weights=Depends(request_weights)):
+    return analyze(site,weights)
 
 
 # Compare between two and four locations
 
 @router.post("/compare")
-def compare(body: Comparison):
+def compare(body: Comparison, weights=Depends(request_weights)):
 
     # Sequential site analysis limits concurrent
     # external provider requests.
 
     results = [
-        analyze(site)
+        analyze(site,weights)
         for site in body.sites
     ]
 

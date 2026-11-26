@@ -10,19 +10,22 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# External API datasets
-data/raw/
-data/processed/
-
 # Frontend
 node_modules/
 dist/
 build/
 
-# IDE
+# Generated datasets
+data/raw/
+data/processed/
+
+# Backups and archives
+frontend_backup/
+*.zip
+
+# IDE and system files
 .vscode/
 .idea/
-
-# Temporary files
+.DS_Store
+Thumbs.db
 *.log
-*.zip
