@@ -1,702 +1,272 @@
-\# ⚡ EV Charging Station Location Planner
+<div align="center">
 
+# ⚡ EV Location Planner
 
+### Plan Smarter. Charge Better.
 
-\### Plan Smarter. Charge Better.
+**A worldwide geospatial decision-support platform for EV charging infrastructure planning.**
 
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=flat-square&logo=react)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white)
+![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=flat-square&logo=leaflet&logoColor=white)
 
+[Overview](#overview) · [Features](#features) · [Architecture](#architecture) · [Scoring](#suitability-scoring) · [Setup](#getting-started) · [Team](#team)
 
-A worldwide geospatial planning platform designed to identify, analyze and recommend promising locations for new electric vehicle charging stations using real-world geographical data, interactive maps and intelligent suitability scoring.
+<img src="frontend/public/ev-hero.jpg" alt="EV charging infrastructure" width="850" />
 
+</div>
 
+---
 
-\## 🌍 Project Overview
+## Overview
 
+Choosing where to install an EV charging station requires more than finding an empty location. Existing charging coverage, surrounding commercial activity and road accessibility all influence a site's potential.
 
+EV Location Planner brings these factors together in an interactive application that helps charging companies, city planners, business owners and researchers evaluate candidate sites worldwide. It provides transparent, data-driven planning recommendations rather than booking or navigation services.
 
-The EV Charging Station Location Planner helps charging companies, city planners, business owners and researchers make informed decisions about EV charging infrastructure expansion.
+## Features
 
+| Feature | What it does |
+| --- | --- |
+| Interactive map | Explore locations, select custom candidates and visualize reported charging stations. |
+| Worldwide search | Find cities, areas and addresses using geocoding. |
+| Suitability analysis | Evaluate candidate sites on a 0–100 scale with factor-level insights. |
+| Site comparison | Compare up to four candidates and identify the strongest scored option. |
+| Saved locations | Shortlist candidates for future planning. |
+| Custom preferences | Adjust the relative importance of scoring factors. |
+| Personalized dashboard | Access planning tools and account information. |
+| Profile management | Update personal information and change passwords. |
+| Admin panel | Add, edit and delete administrator-managed station records. |
+| Authentication | Protect account-specific operations through JWT and role-based authorization. |
 
-
-The platform evaluates candidate locations based on existing charging infrastructure, nearby commercial facilities and road proximity to provide meaningful location suitability recommendations.
-
-
-
-\## 🎯 Project Objectives
-
-
-
-\- Identify potential gaps in existing EV charging infrastructure.
-
-\- Evaluate candidate locations using real-world geographical data.
-
-\- Generate location suitability scores ranging from 0 to 100.
-
-\- Compare multiple locations and recommend promising candidates.
-
-\- Support worldwide location exploration.
-
-\- Enable data-driven infrastructure planning.
-
-
-
-\## ✨ Key Features
-
-
-
-| Feature | Description |
-
-|---|---|
-
-| User Authentication | Secure registration and login using JWT authentication |
-
-| Personalized Dashboard | User-specific planning interface |
-
-| Interactive Map | Explore worldwide locations and reported charging stations |
-
-| Location Search | Search cities, areas and addresses |
-
-| Custom Candidate Selection | Select a location directly on the map |
-
-| Nearby EV Stations | Discover reported charging infrastructure |
-
-| Site Analysis | Generate suitability scores and meaningful planning insights |
-
-| Site Comparison | Compare up to four candidate locations |
-
-| Saved Locations | Shortlist promising locations for future analysis |
-
-| User Preferences | Customize suitability scoring weights |
-
-| Profile Management | View and update personal information |
-
-| Password Management | Securely change account passwords |
-
-| Admin Panel | Authorized management of charging station records |
-
-
-
-\## 🛠️ Technology Stack
-
-
-
-| Layer | Technologies |
-
-|---|---|
-
-| Frontend | React.js, JavaScript, HTML, CSS, Vite |
-
-| Interactive Maps | Leaflet, OpenStreetMap |
-
-| Backend | Python, FastAPI |
-
-| Database | PostgreSQL, Supabase |
-
-| Geospatial Extension | PostGIS |
-
-| Database Connectivity | Psycopg |
-
-| Authentication | JWT, Argon2 password hashing |
-
-| Data Processing | Pandas, Python |
-
-| API Testing | Swagger UI |
-
-| Version Control | Git, GitHub |
-
-| Development Environment | Visual Studio Code |
-
-
-
-\## 🏗️ System Architecture
-
-
+## Architecture
 
 ```mermaid
-
 flowchart TD
-
-&#x20;   A\[User / Administrator] --> B\[React Frontend]
-
-&#x20;   B --> C\[FastAPI REST API]
-
-&#x20;   C --> D\[Authentication and Profile Management]
-
-&#x20;   C --> E\[Location Search and Map Services]
-
-&#x20;   C --> F\[Suitability Scoring Engine]
-
-&#x20;   C --> G\[Site Comparison and Preferences]
-
-&#x20;   C --> H\[Admin Management]
-
-&#x20;   D --> I\[(Supabase PostgreSQL)]
-
-&#x20;   G --> I
-
-&#x20;   H --> I
-
-&#x20;   E --> J\[Mapbox]
-
-&#x20;   F --> K\[Open Charge Map]
-
-&#x20;   F --> L\[Geoapify]
-
-&#x20;   F --> M\[TomTom]
-
+    U[User or Administrator] --> F[React and Leaflet Frontend]
+    F --> A[FastAPI REST API]
+    A --> B[Authentication and Profile]
+    A --> C[Location Search]
+    A --> D[Suitability and Comparison]
+    A --> E[Shortlist, Preferences and Admin]
+    B --> DB[(Supabase PostgreSQL)]
+    E --> DB
+    C --> M[Mapbox Geocoding]
+    D --> O[Open Charge Map]
+    D --> G[Geoapify Places]
+    D --> T[TomTom Traffic]
+    F --> S[OpenStreetMap Tiles]
 ```
 
+### Technology stack
 
+| Layer | Technology |
+| --- | --- |
+| Frontend | React, JavaScript, HTML, CSS, Vite |
+| Mapping | Leaflet, OpenStreetMap |
+| Backend | Python, FastAPI, Pydantic |
+| Database | Supabase PostgreSQL, Psycopg; PostGIS enabled |
+| Security | JWT, Argon2 password hashing |
+| Data processing | Python, Pandas |
+| Development | VS Code, Git, GitHub, Swagger UI |
 
-\## 📊 Location Suitability Scoring
+### External data services
 
+| Provider | Purpose |
+| --- | --- |
+| [Open Charge Map](https://openchargemap.org/) | Reported EV charging infrastructure |
+| [Mapbox](https://www.mapbox.com/) | Forward and reverse geocoding |
+| [Geoapify](https://www.geoapify.com/) | Nearby commercial facilities and infrastructure |
+| [TomTom](https://developer.tomtom.com/) | Road segment and traffic information |
+| [OpenStreetMap](https://www.openstreetmap.org/copyright) | Basemap and geographical context |
 
+## Suitability scoring
 
-The system uses a weighted scoring approach to evaluate candidate locations.
+The planning engine combines three normalized factors using a weighted heuristic.
 
+| Factor | Default weight | Interpretation |
+| --- | ---: | --- |
+| Charging coverage gap | 40% | Potential opportunity to expand reported charging coverage |
+| Commercial facilities | 35% | Presence of nearby businesses and facilities |
+| Road proximity | 25% | Proximity to reported road segments and road characteristics |
 
-
-| Scoring Factor | Default Weight |
-
-|---|---:|
-
-| Charging Coverage Gap | 40% |
-
-| Commercial Facilities | 35% |
-
-| Road Proximity | 25% |
-
-| Total | 100% |
-
-
-
-\### Scoring Formula
-
-
-
+```text
+Suitability = 0.40 × Coverage + 0.35 × Commercial + 0.25 × Road
 ```
 
-Suitability Score =
-
-&#x20;   (Coverage Gap Score × 0.40)
-
-&#x20; + (Commercial Facilities Score × 0.35)
-
-&#x20; + (Road Proximity Score × 0.25)
-
-```
-
-
-
-Users can customize scoring weights through the Preferences page.
-
-
-
-\### Suitability Classification
-
-
+Custom weights can be configured in user preferences. Incomplete required data is reported explicitly instead of fabricating a score.
 
 | Score | Classification |
+| --- | --- |
+| 80–100 | High suitability |
+| 60–<80 | Moderate suitability |
+| 40–<60 | Low suitability |
+| 0–<40 | Very low suitability |
+| Unavailable | Insufficient data |
 
-|---|---|
+Scores support preliminary site screening, not guaranteed demand, profitability or installation feasibility.
 
-| 80–100 | High Suitability |
+## Database
 
-| 60–79.99 | Moderate Suitability |
+| Table | Responsibility |
+| --- | --- |
+| `planner_users` | Accounts, profile details and roles |
+| `planner_shortlist` | User-specific saved candidates |
+| `planner_preferences` | Planning preferences and weights |
+| `planner_stations` | Administrator-managed station records |
 
-| 40–59.99 | Low Suitability |
+## Repository structure
 
-| Below 40 | Very Low Suitability |
-
-| Missing required information | Insufficient Data |
-
-
-
-The system provides planning insights based on available geographical information and identifies promising candidates for further feasibility assessment.
-
-
-
-\## 🔌 External API Integrations
-
-
-
-| Service | Purpose |
-
-|---|---|
-
-| Open Charge Map | Reported EV charging station information |
-
-| Mapbox | Worldwide location search and reverse geocoding |
-
-| Geoapify | Nearby commercial facilities and infrastructure |
-
-| TomTom | Road segment and traffic information |
-
-| OpenStreetMap | Interactive geographical map display |
-
-
-
-\## 🗄️ Database Design
-
-
-
-The application uses Supabase PostgreSQL for persistent data storage.
-
-
-
-| Table | Purpose |
-
-|---|---|
-
-| planner\_users | User accounts, roles and profile information |
-
-| planner\_shortlist | Saved candidate locations |
-
-| planner\_preferences | User-specific planning preferences |
-
-| planner\_stations | Administrator-managed station records |
-
-
-
-Passwords are stored as secure hashes rather than plaintext.
-
-
-
-\## 📁 Project Structure
-
-
-
-```
-
+```text
 EV-Charging-Station-Location-Planner/
-
-│
-
 ├── backend/
-
 │   ├── app/
-
 │   │   ├── routers/
-
 │   │   ├── schemas/
-
 │   │   ├── services/
-
 │   │   ├── database.py
-
 │   │   └── main.py
-
 │   ├── scripts/
-
 │   ├── .env.example
-
 │   ├── requirements.txt
-
-│   ├── setup\_database.sql
-
-│   └── upgrade\_v2.sql
-
-│
-
+│   ├── setup_database.sql
+│   └── upgrade_v2.sql
 ├── frontend/
-
 │   ├── public/
-
 │   ├── src/
-
-│   │   ├── assets/
-
-│   │   ├── components/
-
-│   │   ├── pages/
-
-│   │   ├── services/
-
-│   │   ├── App.jsx
-
-│   │   └── App.css
-
+│   ├── .env.example
 │   ├── package.json
-
 │   └── vite.config.js
-
-│
-
 ├── .gitignore
-
 └── README.md
-
 ```
 
+## Getting started
 
+### Prerequisites
 
-\## 🚀 Installation and Setup
+Python, Node.js with npm, Git, a PostgreSQL/Supabase database and valid credentials for the external data providers.
 
-
-
-\### 1. Clone the Repository
-
-
+### 1. Clone the repository
 
 ```bash
-
 git clone https://github.com/TanviGanji18/EV-Charging-Station-Location-Planner.git
-
-
-
 cd EV-Charging-Station-Location-Planner
-
 ```
 
-
-
-\### 2. Backend Setup
-
-
+### 2. Configure the backend (Windows PowerShell)
 
 ```powershell
-
 cd backend
-
-
-
 python -m venv venv
-
-
-
-.\\venv\\Scripts\\Activate.ps1
-
-
-
-pip install -r requirements.txt
-
+.\venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+Copy-Item .env.example .env
 ```
 
+Fill in the backend `.env` using your own credentials:
 
-
-\### 3. Environment Configuration
-
-
-
-Create a `.env` file inside the backend directory using `.env.example` as a reference.
-
-
-
-```env
-
-OPEN\_CHARGE\_MAP\_API\_KEY=
-
-MAPBOX\_ACCESS\_TOKEN=
-
-GEOAPIFY\_API\_KEY=
-
-TOMTOM\_API\_KEY=
-
-
-
-DB\_HOST=
-
-DB\_PORT=5432
-
-DB\_NAME=postgres
-
-DB\_USER=
-
-DB\_PASSWORD=
-
-
-
-JWT\_SECRET\_KEY=
-
+```dotenv
+OPEN_CHARGE_MAP_API_KEY=
+MAPBOX_ACCESS_TOKEN=
+GEOAPIFY_API_KEY=
+TOMTOM_API_KEY=
+DB_HOST=
+DB_PORT=5432
+DB_NAME=postgres
+DB_USER=
+DB_PASSWORD=
+JWT_SECRET_KEY=
 ```
 
+### 3. Initialize the database
 
+Enable PostGIS in the Supabase SQL Editor and run `backend/setup_database.sql`. For an existing V1 database, apply `backend/upgrade_v2.sql` to add the profile fields.
 
-Configure valid API credentials and database connection details.
+### 4. Start FastAPI
 
-
-
-Never commit the actual `.env` file to GitHub.
-
-
-
-\### 4. Database Setup
-
-
-
-\- Create or configure a Supabase PostgreSQL project.
-
-\- Enable the PostGIS extension.
-
-\- Execute `setup\_database.sql` using the Supabase SQL Editor.
-
-\- For an existing older database, execute `upgrade\_v2.sql` to add the updated profile fields.
-
-
-
-\### 5. Run the Backend
-
-
-
-```bash
-
+```powershell
 uvicorn app.main:app --reload
-
 ```
 
+- Backend: http://127.0.0.1:8000
+- Swagger documentation: http://127.0.0.1:8000/docs
 
+### 5. Start the frontend
 
-Backend URL: http://127.0.0.1:8000
+Open another terminal from the repository root:
 
-
-
-Swagger API Documentation: http://127.0.0.1:8000/docs
-
-
-
-\### 6. Frontend Setup
-
-
-
-Open a separate terminal from the project root.
-
-
-
-```bash
-
+```powershell
 cd frontend
-
-
-
-npm install
-
-
-
-npm run dev
-
+npm ci
+Copy-Item .env.example .env
 ```
 
+Configure the frontend API base URL using the variable specified in its `.env.example`, then run:
 
+```powershell
+npm run dev
+```
 
-Open the local URL displayed by Vite.
+Open the URL printed by Vite. Never expose database credentials, JWT signing secrets or private provider keys in frontend environment variables.
 
+## REST API
 
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| POST | `/api/v1/auth/register` | Register an account |
+| POST | `/api/v1/auth/login` | Authenticate |
+| GET | `/api/v1/auth/me` | Retrieve account information |
+| GET | `/api/v1/locations/search` | Search locations |
+| GET | `/api/v1/locations/reverse` | Reverse geocode |
+| GET | `/api/v1/stations/nearby` | Retrieve nearby charging stations |
+| GET | `/api/v1/infrastructure/summary` | Summarize nearby facilities |
+| GET | `/api/v1/traffic` | Retrieve road and traffic data |
+| POST | `/api/v1/analysis` | Evaluate a candidate |
+| POST | `/api/v1/compare` | Compare candidates |
+| GET, POST | `/api/v1/shortlist` | Retrieve or save candidates |
+| DELETE | `/api/v1/shortlist/{id}` | Remove a saved candidate |
+| GET, PUT | `/api/v1/preferences` | Retrieve or update preferences |
+| GET, POST | `/api/v1/admin/stations` | List or add managed stations |
+| PUT, DELETE | `/api/v1/admin/stations/{id}` | Update or delete managed stations |
 
-\## 🔗 Main API Endpoints
+See `/docs` for the complete API contract, including profile operations.
 
+## Security and testing
 
+Authentication uses JWTs and hashed passwords. Administrator access is assigned separately from public registration. Credentials are configured through environment variables and must not be committed to Git.
 
-| Method | Endpoint | Description |
+Development checks include authentication, database connectivity, geographical searches, provider integration, scoring, comparisons, shortlist management, preferences and administrator CRUD operations. Independent integration testing and live deployment verification are release steps.
 
-|---|---|---|
+## Deployment
 
-| POST | /api/v1/auth/register | Register user |
+**Status:** Deployment and live verification pending. The public application URL will be added after deployment.
 
-| POST | /api/v1/auth/login | Authenticate user |
+## Limitations and future scope
 
-| GET | /api/v1/auth/me | Retrieve account information |
+- Geographical coverage and response times depend on external providers; reported station status is not guaranteed live availability.
+- Scores are heuristic estimates, not validated demand forecasts or investment assessments.
+- Charger type is stored as a preference; managed station records remain separate from external provider results.
+- Future work includes demand forecasting, automatic candidate generation, electrical grid assessment, land and cost analysis, and performance optimization.
 
-| GET | /api/v1/locations/search | Search worldwide locations |
+## Team
 
-| GET | /api/v1/locations/reverse | Reverse geocoding |
+**Team 18 · Anurag University · B.Tech Project**
 
-| GET | /api/v1/stations/nearby | Retrieve nearby charging stations |
+| Member | Responsibility |
+| --- | --- |
+| Ganji Tanvi | Backend, database and frontend integration |
+| Nikitha G | Frontend development and UI/UX |
+| Akash B | Testing and quality assurance |
+| Nehal Maria Choudhary Dhaka | Deployment |
 
-| GET | /api/v1/infrastructure/nearby | Retrieve nearby infrastructure |
+---
 
-| GET | /api/v1/infrastructure/summary | Infrastructure summary |
+<div align="center">
 
-| GET | /api/v1/traffic | Road and traffic information |
+**Plan smarter today for a cleaner mobility future.**
 
-| POST | /api/v1/analysis | Analyze candidate location |
-
-| POST | /api/v1/compare | Compare candidate locations |
-
-| GET | /api/v1/shortlist | Retrieve saved locations |
-
-| POST | /api/v1/shortlist | Save a location |
-
-| DELETE | /api/v1/shortlist/{id} | Remove saved location |
-
-| GET | /api/v1/preferences | Retrieve preferences |
-
-| PUT | /api/v1/preferences | Update preferences |
-
-| GET | /api/v1/admin/stations | Retrieve managed stations |
-
-| POST | /api/v1/admin/stations | Add station |
-
-| PUT | /api/v1/admin/stations/{id} | Update station |
-
-| DELETE | /api/v1/admin/stations/{id} | Delete station |
-
-
-
-Refer to Swagger UI for the complete API documentation, including profile management operations.
-
-
-
-\## 🔐 Security Features
-
-
-
-\- JWT-based authentication
-
-\- Secure password hashing
-
-\- Role-based access control
-
-\- Administrator-only station management
-
-\- Input validation
-
-\- Environment-based credential management
-
-\- Protected user-specific records
-
-
-
-\## 🧪 Testing
-
-
-
-Development testing covers:
-
-
-
-\- User registration and authentication
-
-\- Database connectivity
-
-\- Worldwide location search
-
-\- External API integration
-
-\- Charging station retrieval
-
-\- Infrastructure analysis
-
-\- Location suitability scoring
-
-\- Site comparison
-
-\- Saved location management
-
-\- User preferences
-
-\- Administrator authorization and CRUD operations
-
-
-
-Independent integration testing and deployed application verification are part of the final release process.
-
-
-
-\## 📸 Application Screens
-
-
-
-\- Landing Page
-
-\- Sign Up
-
-\- Login
-
-\- Dashboard
-
-\- Explore Map
-
-\- Site Analysis
-
-\- Compare Sites
-
-\- Saved Locations
-
-\- Preferences
-
-\- My Profile
-
-\- Admin Panel
-
-
-
-Application screenshots will be added to the repository.
-
-
-
-\## 👥 Team 18
-
-
-
-\*\*Anurag University — B.Tech Project\*\*
-
-
-
-| Team Member | Responsibility |
-
-|---|---|
-
-| Ganji Tanvi | Backend Development, Database and Frontend Integration |
-
-| Nikitha G | Frontend Development and UI/UX |
-
-| Akash B | Software Testing and Quality Assurance |
-
-| Nehal Maria Choudhary Dhaka | Application Deployment |
-
-
-
-\## 🌐 Deployment
-
-
-
-Deployment link: To be updated after deployment.
-
-
-
-\## ⚠️ Current Limitations
-
-
-
-\- Results depend on external API availability and geographical data coverage.
-
-\- Charging station information represents reported infrastructure, not guaranteed live availability.
-
-\- Suitability scores are heuristic planning indicators, not validated investment feasibility assessments.
-
-\- Analysis response times depend on external service performance.
-
-\- Charger type is currently stored as a user preference.
-
-\- Administrator-managed station records are maintained separately from external provider results.
-
-
-
-\## 🔮 Future Enhancements
-
-
-
-\- Machine learning-based charging demand forecasting
-
-\- Automatic candidate location generation
-
-\- Electrical grid capacity assessment
-
-\- Installation cost estimation
-
-\- Land availability analysis
-
-\- Advanced geographical heatmaps
-
-\- Improved caching and response times
-
-\- Integration of administrator-managed stations into suitability analysis
-
-
-
-\---
-
-
-
-\*\*EV Charging Station Location Planner — Building a smarter and more sustainable electric mobility future.\*\*
-
+</div>
